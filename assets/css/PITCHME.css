@@ -15,6 +15,11 @@ body {
   color: #455;
 }
 
+.reveal section .credit {
+  font-size: 0.25em;
+  color: #455;
+}
+
 #gp-logo img {
   max-height: 1.5em;
   max-width: none;
