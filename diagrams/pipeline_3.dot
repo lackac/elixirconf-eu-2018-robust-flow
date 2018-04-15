@@ -1,0 +1,23 @@
+digraph {
+  newrank=true
+  rankdir=LR
+  fontsize=24
+  fontname=Helvetica
+
+  node [shape=none fontsize=36 fontname=Helvetica]
+
+  subgraph cluster_s1 {
+    label="Step 1"
+    Prepare [penwidth=0 image="machine.png"]
+  }
+  subgraph cluster_s2 {
+    label="Step 2"
+    Import  [penwidth=0 image="machine.png"]
+  }
+  subgraph cluster_s3 {
+    label="Step 3"
+    Process [penwidth=0 image="machine.png"]
+  }
+
+  "Source Feeds" -> Prepare -> Import -> Process -> "Data Warehouse"
+}

@@ -1,0 +1,9 @@
+digraph {
+  newrank=true
+  rankdir=LR
+
+  node [shape=none fontsize=36 fontname=Helvetica]
+  M [label="" penwidth=0 image="machine.png"]
+
+  "Source Feeds" -> M -> "Data Warehouse"
+}
