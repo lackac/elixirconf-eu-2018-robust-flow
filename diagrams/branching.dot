@@ -1,0 +1,26 @@
+digraph {
+  newrank=true
+  rankdir=LR
+  fontsize=24
+  fontname=Helvetica
+
+  Source [shape=circle label=""]
+  Target [shape=circle label=""]
+
+  subgraph cluster_ba {
+    label="Branch A"
+    node [shape=box style=rounded fontsize=36 fontname=Helvetica]
+    "Step A1" -> "Step A2"
+  }
+  subgraph cluster_bb {
+    label="Branch B"
+    node [shape=box style=rounded fontsize=36 fontname=Helvetica]
+    "Step B1" -> "Step B2" -> "Step B3"
+  }
+
+  Source -> "Step A1"
+  Source -> "Step B1"
+
+  "Step A2" -> Target
+  "Step B3" -> Target
+}

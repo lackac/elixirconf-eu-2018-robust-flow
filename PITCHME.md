@@ -12,6 +12,7 @@
 * talk is based on uncompleted work
 * based on client work<sup>*</sup>
 * pipeline target is AWS Redshift
+* all pipelines are custom
 
 <br>
 @css[small](<sup>*</sup> CollectPlus: parcel service in the UK)
@@ -185,5 +186,123 @@ end)
 
 # Read the [docs](https://hexdocs.pm/flow/Flow.html)
 ### excellent as usual
+
+---?image=assets/images/kelvyn-ornettte-sol-marte-328832-unsplash.jpg&opacity=40
+
+# Maintainability
+
+- Composition     |
+- Branching flows |
+
+---
+
+# Composition
+
+* Two modes of operation
+  * Historical
+    * prepare, import, and process all data from 2012 to 2015
+    * reimport and reprocess everything for year 2016
+  * Real-time
+    * monitor source for new files
+    * run incoming data through the whole pipeline
+
++++
+
+## Composable flows
+
+``` elixir
+defmodule ImportFeeds do
+  @spec flow(Enumerable.t()) :: Flow.t()
+  def flow(%Flow{} = flow) do
+    flow
+    |> Flow.map(&ensure_loaded/1)
+    # |> ...
+    |> Flow.emit(:state)
+  end
+
+  def flow(input) do
+    input |> Flow.from_enumerable() |> flow()
+  end
+end
+```
+
+@[1-2](Each stage is implemented in a module with a `flow/1` function that takes an Enumerable and returns a Flow)
+@[3-8](The actual implementation of the flow starts from a `Flow` struct)
+@[10-12](Any other kind of input is expected to be an Enumerable, turned into a Flow and piped into `flow/1`)
+
++++
+
+### Now this works
+
+``` elixir
+feeds
+|> PrepareFeeds.flow()
+|> ImportFeeds.flow()
+|> Flow.run()
+```
+
++++
+
+### As does this
+
+``` elixir
+batch_ids
+|> ImportFeeds.flow()
+|> PorcessEvents.flow()
+|> Flow.run()
+```
+
++++
+
+### We may also extend this to support different kind of sources
+
+``` elixir
+def flow(stage) when is_pid(stage) do
+  stage |> Flow.from_stage() |> flow()
+end
+```
+
+---
+
+# Branching
+
+![Branching](diagrams/branching.png)
+
++++
+
+### There a several cases and strategies
+
+* keep it inside the Flow for simple cases especially if you need the data together again later
+* use `Flow.into_stages/3` for complex situations
+
++++
+
+### Branching example
+
+``` elixir
+flow
+|> Flow.flat_map(&[{&1, :advices}, {&1, :events}])
+|> Flow.partition(stages: 2, max_demand: 1,
+  hash: fn
+    {_, :advices} = event -> {event, 0}
+    {_, :events} = event -> {event, 1}
+  end
+)
+|> Flow.map(&import_from_s3/1)
+|> Flow.map(&move_to_target/1)
+|> Flow.map(&mark_imported/1)
+|> Flow.partition(stages: 1, window: window)
+|> Flow.group_by(
+  fn {%{batch_id: batch_id}, _} -> batch_id end,
+  fn {_, feed_type} -> feed_type end
+)
+|> Flow.emit(:state)
+|> Flow.flat_map(&Map.keys/1)
+```
+
+@[2](Annotate items with their branch identifier)
+@[3-8](Partition items based on branch identifier)
+@[9-11](These map stages happen in branched partitions)
+@[12-18](Join data back together based on the first element in the tuple—the original items)
 
 ---
