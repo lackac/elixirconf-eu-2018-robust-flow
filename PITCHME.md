@@ -13,13 +13,33 @@
 * based on client work<sup>*</sup>
 * pipeline target is AWS Redshift
 
+<br>
 @css[small](<sup>*</sup> CollectPlus: parcel service in the UK)
+
+---
+
+# Agenda
+
+- Mental Model of a Pipeline   |
+- Elixir Flow                  |
+- Maintainability              |
+- Error Handling Strategies    |
+- Scheduling                   |
 
 ---
 
 ## What does the machine do?
 
 ![what does the machine do?](assets/images/machine.png)
+
+---?image=assets/images/scott-webb-383381-unsplash.jpg&position=center right&size=auto 100%&color=black
+
+# Mental
+# Model
+# of a
+# Pipeline
+
+@css[credit](Photo by <a href="https://unsplash.com/photos/tYa2Myli6qE">Scott Webb</a> on <a href="https://unsplash.com/">Unsplash</a>)
 
 ---
 
@@ -103,7 +123,8 @@ end
 
 # Flow Crash Course
 
-@css[credit](Photo by <a href="https://unsplash.com/photos/lcyF8BHpJBM">paul morris</a> on <a href="https://unsplash.com/search/photos/flowing">Unsplash</a>)
+<br>
+@css[credit](Photo by <a href="https://unsplash.com/photos/lcyF8BHpJBM">paul morris</a> on <a href="https://unsplash.com/">Unsplash</a>)
 
 +++
 
