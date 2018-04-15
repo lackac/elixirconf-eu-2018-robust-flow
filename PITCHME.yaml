@@ -1,0 +1,31 @@
+#
+# GitPitch Slideshow Custom Settings
+#
+# For details, visit the GitPitch Wiki:
+# https://github.com/gitpitch/gitpitch/wiki/Slideshow-Settings
+#
+
+#
+# Theme setting options:
+# black, moon, night, beige, sky, white, simple
+#
+theme : white
+
+#
+# Layout setting options:
+# center, center-left, center-right, top, top-left, top-right
+#
+layout : center-left
+
+#
+# Transition setting options:
+# convex, concave, default, fade, none, slide, zoom
+#
+transition : none
+
+logo : assets/images/logo.png
+theme-override : assets/css/PITCHME.css
+footnote : "© 2018 László Bácsi – <a href='http://www.100starlings.com'>100Starlings</a> – <a href='https://github.com/lackac/'>github.com/lackac</a> – <a href='https://twitter.com/icanscale'>@icanscale</a>"
+
+slide-number : true
+highlight : solarized-light

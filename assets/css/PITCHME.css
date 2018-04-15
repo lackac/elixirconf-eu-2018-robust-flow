@@ -1,0 +1,33 @@
+/*
+ * GitPitch Custom CSS Styling
+ *
+ * For details, visit Wiki:
+ * https://github.com/gitpitch/gitpitch/wiki/Slideshow-Custom-CSS
+ */
+
+body {
+  background: linear-gradient(270deg, #93e6e4, #bed9e9);
+  color: #073642;
+}
+
+.reveal section .small {
+  font-size: 0.6em;
+  color: #455;
+}
+
+#gp-logo img {
+  max-height: 1.5em;
+  max-width: none;
+}
+
+.reveal pre {
+  width: 100%;
+  box-shadow : none;
+}
+
+.reveal pre code {
+  font-size: 1.2em;
+  line-height: 1.2;
+  max-height: 55vh !important;
+  border-radius: 10px;
+}
