@@ -35,6 +35,8 @@
 
 ---?image=assets/images/scott-webb-383381-unsplash.jpg&position=center right&size=auto 100%&color=black
 
+@title[Mental Model of a Pipeline]
+
 # Mental
 # Model
 # of a
@@ -84,9 +86,8 @@ def flow(input) do
 end
 ```
 
-@[2-3](Initialize the Flow from an enumerable)
-@[4-7](Mapping stages prepare and upload the files in parallel)
-@[8-9](Reduce feeds over a window into lists)
+@[4-7](Flow helps you express high level transformations as a pipeline…)
+@[8-9](with mapping and reducing stages)
 
 +++?image=assets/images/tubes.jpg&opacity=40
 
@@ -97,7 +98,7 @@ end
 ## Pipes, pipes, and more pipes
 
 ``` elixir
-def split_feed({key, contents}) do
+def prepare_feed({key, contents}) do
   feed_id = Path.basename(key, ".csv")
 
   contents
@@ -106,19 +107,11 @@ def split_feed({key, contents}) do
   |> Stream.map(fn {line, i} ->
     Enum.join([String.trim(line), feed_id, i + 1], ",")
   end)
-  |> Enum.reduce({"", ""}, fn
-    @advice_row <> row, {advices, events} ->
-      {advices <> row <> "\n", events}
-    @event_row  <> row, {advices, events} ->
-      {advices, events <> row <> "\n"}
-    _, acc -> acc
-  end)
+  |> Enum.reduce(%Feed{}, &collect_feed_rows/2)
 end
 ```
 
-@[4-5](Start with the full contents of the feeds and create a stream of lines)
-@[6-9](Add feed_id and row number to each row)
-@[10-16](Separate advices and events)
+@[4-10](We are expressing the transformation as a pipeline again)
 
 ---?image=assets/images/paul-morris-282853-unsplash.jpg&opacity=60
 
@@ -270,9 +263,9 @@ end
 
 +++
 
-### There a several cases and strategies
+### Multiple cases and strategies
 
-* keep it inside the Flow for simple cases especially if you need the data together again later
+* keep it inside the Flow for simple cases especially if you need to join the data together again later
 * use `Flow.into_stages/3` for complex situations
 
 +++
@@ -281,18 +274,17 @@ end
 
 ``` elixir
 flow
-|> Flow.flat_map(&[{&1, :advices}, {&1, :events}])
+|> Flow.flat_map(&[{&1, :type_a}, {&1, :type_b}])
 |> Flow.partition(stages: 2, max_demand: 1,
   hash: fn
-    {_, :advices} = event -> {event, 0}
-    {_, :events} = event -> {event, 1}
+    {_, :type_a} = event -> {event, 0}
+    {_, :type_b} = event -> {event, 1}
   end
 )
-|> Flow.map(&import_from_s3/1)
-|> Flow.map(&move_to_target/1)
+|> Flow.map(&import_type/1)
 |> Flow.map(&mark_imported/1)
 |> Flow.partition(stages: 1, window: window)
-|> Flow.group_by(
+|> Flow.group_by(&elem(&1, 0).id, &elem(&1, 1))
   fn {%{batch_id: batch_id}, _} -> batch_id end,
   fn {_, feed_type} -> feed_type end
 )

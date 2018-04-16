@@ -7,15 +7,15 @@ digraph {
   node [shape=none fontsize=36 fontname=Helvetica]
 
   subgraph cluster_s1 {
-    label="Step 1"
+    label="Step 1" style=filled color=limegreen fontcolor=white
     Prepare [penwidth=0 image="machine.png"]
   }
   subgraph cluster_s2 {
-    label="Step 2"
+    label="Step 2" style=filled color=royalblue fontcolor=white
     Import  [penwidth=0 image="machine.png"]
   }
   subgraph cluster_s3 {
-    label="Step 3"
+    label="Step 3" style=filled color=salmon fontcolor=white
     Process [penwidth=0 image="machine.png"]
   }
 

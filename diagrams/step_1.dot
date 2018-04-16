@@ -7,7 +7,7 @@ digraph {
   node [shape=none fontsize=36 fontname=Helvetica]
 
   subgraph cluster_s1 {
-    label="Step 1"
+    label="Step 1" style=filled color=limegreen fontcolor=white
     node [penwidth=0 image="machine.png"]
     Download -> "Prepare Feed" -> Upload
   }
