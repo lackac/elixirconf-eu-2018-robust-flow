@@ -3,6 +3,7 @@
 # @size[0.6em](Robust Data Processing Pipeline with Elixir and Flow)
 ## @size[0.6em](László Bácsi, 100Starlings)
 ### @size[0.6em](@fa[github]lackac @fa[twitter]@icanscale)
+### [bit.ly/ex18-flow](http://bit.ly/ex18-flow)
 
 ---
 
