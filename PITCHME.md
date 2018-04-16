@@ -24,7 +24,7 @@
 - Mental Model of a Pipeline   |
 - Elixir Flow                  |
 - Maintainability              |
-- Error Handling Strategies    |
+- Failure Tolerance            |
 - Scheduling                   |
 
 ---
@@ -306,3 +306,170 @@ flow
 @[12-18](Join data back together based on the first element in the tuple—the original items)
 
 ---
+
+# Failure Tolerance
+
+![not built with failure tolerance in mind](assets/images/not-robust-appliance.gif)
+
+---
+
+# Two sides
+
+## Error handling
+## Supervision
+
+---
+
+# Supervising Elixir Flows
+
+``` elixir
+FeedStorage.list_feeds(opts)
+|> SplitFeeds.flow(window: window)
+|> Flow.start_link()
+```
+
+@[3](Starts and runs the flow as a separate process)
+
++++
+
+## Adding a flow to a supervision tree
+
+``` elixir
+def start_prepare_flow(opts) do
+  {window, opts} = Keyword.pop(opts, :window)
+  FeedStorage.list_feeds(opts)
+  |> SplitFeeds.flow(window: window)
+  |> start_flow_supervised()
+end
+```
+
+@[5](We want to be able to do something like this)
+
++++
+
+### Create a `DynamicSupervisor`
+
+``` elixir
+# in your supervisor
+children = [
+  # ...,
+  {DynamicSupervisor, name: FlowSupervisor, strategy: :one_for_one}
+]
+```
+
++++
+
+### Start an arbitrary flow supervised
+
+``` elixir
+defp start_flow_supervised(flow) do
+  child_spec = %{
+    id: make_ref(),
+    start: {Flow, :start_link, [flow]},
+    restart: :temporary,
+    type: :supervisor
+  }
+
+  DynamicSupervisor.start_child(FlowSupervisor, child_spec)
+end
+```
+
+@[2-7](Child Spec for the Flow supervisor)
+@[4](We call `Flow.start_link/1` with `flow`)
+@[9](Add the flow to our `FlowSupervisor`)
+
+---?image=assets/images/daniel-tausis-563581-unsplash.jpg&opacity=40
+
+# Error handling strategies
+
+* Let it crash    |
+* Flag and filter |
+* Branch          |
+
+<br>
+@css[credit](Photo by <a href="https://unsplash.com/photos/loeqHoa1uWY">Daniel Tausis</a> on <a href="https://unsplash.com/">Unsplash</a>)
+
+---
+
+# Let it crash
+
+Works well if you have an idempotent pipeline you can just restart, or if the occasional crash has a very low impact.
+
+---
+
+# Flag and Filter
+
+``` elixir
+flow
+|> Flow.map(&get_feed/1)
+|> Flow.map(&prepare_feed/1)
+|> Flow.map(&upload_feeds/1)
+|> Flow.filter(&filter_and_log/1)
+
+def prepare_feed({:ok, feed}), do: do_prepare_feed(feed)
+def prepare_feed({:error, _} = error), do: error
+
+def filter_and_log({:ok, _}), do: true
+def filter_and_log({:error, err}) do: log(err) && false
+```
+
+@[2-4](Each of these steps may return either `{:ok, value}` or `{:error, reason}`)
+@[7-8](Their implementation ignores errors and passes them on)
+@[5](At certain stages in the pipeline we log these errors and filter them out)
+@[10-11](Success values are kept, errors are logged and rejected)
+
++++
+
+# Benefits
+
+* minimal impact on the pipeline structure
+* failure handling checkpoints make it easier to see what's going on
+* recommended to put checkpoint just before reduce step so that it deals with clean data
+
+---
+
+# Branching errors
+
+* A combination of "Flag and Filter" and the "Branching flows" approach
+* Branch `{:ok, value}` and `{:error, error}` into two partitions
+* Only advised for complex error handling situations and when the number of errors is in the same ballpark as the success values
+
+---
+
+# Scheduling
+
+* Simple scheduling is easy to achieve based on our composing functions (e.g. `start_prepare_flow/1` from earlier)
+* for real-time processing we need something more
+* looking to use RabbitMQ there
+
++++
+
+# Scheduling flows with RabbitMQ
+
+![Scheduling flows with RabbitMQ](diagrams/rabbit_flow.png)
+
++++
+
+## Still TBD
+
+* The RabbitMQ consumer would be a GenStage producer for the flow
+* And the RabbitMQ producer could be a GenStage consumer of the same flow
+* This is still just on the drawing board
+* Just the other day found [pma/wabbit](https://github.com/pma/wabbit/tree/master/lib/wabbit) on GitHub that looks interesting we might be able to use
+
+---
+
+# Summary
+
+* Elixir with Flow is more than just parallel processing
+* Break up a complex flow into composable steps
+* Handle errors at the right place and supervise flows
+* Combine flows with RabbitMQ for scheduling
+
+---
+
+### Thank you! Further reading
+
+- [Flow Documentation](https://hexdocs.pm/flow/Flow.html)
+- [Architecting Flow in Elixir Programs](http://trivelop.de/2018/03/26/flow-elixir-using-plug-like-token/) – Dr. René Föhring's excellent article series
+- [These slides](https://gitpitch.com/lackac/elixirconf-eu-2018-robust-flow)

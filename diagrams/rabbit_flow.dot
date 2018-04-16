@@ -1,0 +1,28 @@
+digraph {
+  newrank=true
+  rankdir=LR
+  fontsize=24
+  fontname=Helvetica
+
+  node [shape=none fontsize=36 fontname=Helvetica]
+
+  subgraph cluster_q1 {
+    label="feeds queue"
+    penwidth=0
+    Q1 [shape=record fillcolor=red label="{||||}"]
+  }
+
+  subgraph cluster_q2 {
+    label="batches queue"
+    penwidth=0
+    Q2 [shape=record fillcolor=red label="{||||}"]
+  }
+
+  subgraph cluster_s1 {
+    label="Stage 1"
+    Consumer [shape=box]
+    Producer [shape=box]
+    Flow [penwidth=0 image="machine.png"]
+    Q1 -> Consumer -> Flow -> Producer -> Q2
+  }
+}
