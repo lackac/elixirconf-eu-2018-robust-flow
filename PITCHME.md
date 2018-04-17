@@ -286,17 +286,14 @@ flow
 |> Flow.map(&mark_imported/1)
 |> Flow.partition(stages: 1, window: window)
 |> Flow.group_by(&elem(&1, 0).id, &elem(&1, 1))
-  fn {%{batch_id: batch_id}, _} -> batch_id end,
-  fn {_, feed_type} -> feed_type end
-)
 |> Flow.emit(:state)
 |> Flow.flat_map(&Map.keys/1)
 ```
 
 @[2](Annotate items with their branch identifier)
 @[3-8](Partition items based on branch identifier)
-@[9-11](These map stages happen in branched partitions)
-@[12-18](Join data back together based on the first element in the tuple—the original items)
+@[9-10](These map stages happen in branched partitions)
+@[11-14](Join data back together based on the first element in the tuple—the original items)
 
 ---
 
